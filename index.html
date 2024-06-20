@@ -842,30 +842,47 @@
             loadCheckboxes();
             populateClassDropdown();
         };
+		const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+app.use(express.static('public'));
+
+io.on('connection', (socket) => {
+    console.log('a user connected');
+
+    socket.on('edit', (data) => {
+        socket.broadcast.emit('edit', data);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+});
+
+server.listen(3000, () => {
+    console.log('listening on *:3000');
+});
+
     </script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+<script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBPQbEzrkQXEGY5pjQD7DKXEC-ikYMfMhU",
-    authDomain: "ornate-producer-398617.firebaseapp.com",
-    databaseURL: "https://ornate-producer-398617-default-rtdb.firebaseio.com",
-    projectId: "ornate-producer-398617",
-    storageBucket: "ornate-producer-398617.appspot.com",
-    messagingSenderId: "873323252668",
-    appId: "1:873323252668:web:10a8daf95d09f609e7f9b9",
-    measurementId: "G-86HSVXTW2T"
-  };
+        const editor = document.getElementById('editor');
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+        editor.addEventListener('input', () => {
+            socket.emit('edit', editor.value);
+        });
+
+        socket.on('edit', (data) => {
+            editor.value = data;
+        });
+    </script>
+
 </body>
 </html>
